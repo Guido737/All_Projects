@@ -1,0 +1,1 @@
+python3 news_scrypt.py 8345c95a63644a2f92b60f44ebaa5d3c --query ai --category technology
