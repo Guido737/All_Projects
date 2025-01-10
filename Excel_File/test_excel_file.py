@@ -37,7 +37,7 @@ def parse_line(line):
 
     return full_name, profession, age, gender
 
-class TestHangmanGame(unittest.TestCase):
+class ExcelFile(unittest.TestCase):
 
     def test_parse_line_valid(self):
         """
