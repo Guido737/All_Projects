@@ -3,6 +3,13 @@ Task
 Created by: Creator/Eversor
 Date: 30 Dec 2024
 """
+import os
+
+def clear_screen():
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
 
 def display_tasks(task_dict):
     """
@@ -11,7 +18,12 @@ def display_tasks(task_dict):
     Brief: Display tasks grouped by their status.
     """
     for status, tasks in task_dict.items():
-        print(f"{status}: {', '.join(tasks) if tasks else 'No tasks'}")
+        print(f"{status}:")
+        if tasks:
+            for task in tasks:
+                print(f"  - {task}")
+        else:
+            print("  No tasks available in this category.")
 
 def display_menu():
     """
@@ -32,7 +44,11 @@ def get_task_choice():
     Params: None
     Brief: Get user choice for tasks.
     """
-    return input("Choose a number (1-5): ")
+    while True:
+        choice = input("Choose a number (1-5): ")
+        if choice in ["1", "2", "3", "4", "5"]:
+            return choice
+        print("Invalid choice. Please choose a number from 1 to 5.")
 
 def display_task_list(choice, task_dict):
     """
@@ -40,16 +56,23 @@ def display_task_list(choice, task_dict):
     Params: choice (str), task_dict (dict)
     Brief: Display tasks based on choice.
     """
-    if choice == "1":
-        display_tasks({"TO DO": task_dict["TO DO"]})
-    elif choice == "2":
-        display_tasks({"IN PROGRESS": task_dict["IN PROGRESS"]})
-    elif choice == "3":
-        display_tasks({"REVIEW": task_dict["REVIEW"]})
-    elif choice == "4":
-        display_tasks({"DONE": task_dict["DONE"]})
-    elif choice == "5":
-        display_tasks(task_dict)
+    print("\n" + "-"*50)
+    status_map = {
+        "1": "TO DO",
+        "2": "IN PROGRESS",
+        "3": "REVIEW",
+        "4": "DONE",
+        "5": None 
+    }
+
+    status = status_map.get(choice)
+    if status:
+        display_tasks({status: task_dict[status]})
+    else:
+        for status in ["TO DO", "IN PROGRESS", "REVIEW", "DONE"]:
+            display_tasks({status: task_dict[status]})
+
+    print("-"*50)
 
 def get_task_to_deal(task_dict):
     """
@@ -57,16 +80,16 @@ def get_task_to_deal(task_dict):
     Params: task_dict (dict)
     Brief: Ask user for task to move.
     """
-    task_to_deal = input("\nWhich task do you want to deal with? ")
-    task_found = False
-    for status in task_dict:
-        if task_to_deal in task_dict[status]:
-            task_found = True
-            break
-    if not task_found:
-        print("Task not found. Please choose a valid task.")
-        return None
-    return task_to_deal
+    all_tasks = {task: status for status in task_dict for task in task_dict[status]}
+    while True:
+        task_to_deal = input("\nWhich task do you want to deal with? ").strip()
+        if not task_to_deal:
+            print("You didn't enter a task. Please try again.")
+            continue
+        if task_to_deal in all_tasks:
+            return task_to_deal
+        else:
+            print(f"Task '{task_to_deal}' not found. Available tasks are: {', '.join(all_tasks.keys())}.")
 
 def get_move_choice():
     """
@@ -80,7 +103,25 @@ def get_move_choice():
     print("3. REVIEW")
     print("4. DONE")
 
-    return input("Choose a number (1-4): ")
+    move_choice = input("Choose a number (1-4): ")
+    while move_choice not in ["1", "2", "3", "4"]:
+        print("Invalid choice. Please choose a valid number (1-4).")
+        move_choice = input("Choose a number (1-4): ")
+
+    return move_choice
+
+def move_task(task_dict, task_to_deal, new_status):
+    """
+    Function: move_task
+    Params: task_dict (dict), task_to_deal (str), new_status (str)
+    Brief: Move the task to the new status and update the task_dict.
+    """
+    for status in task_dict:
+        if task_to_deal in task_dict[status]:
+            task_dict[status].remove(task_to_deal)
+            break
+    task_dict[new_status].append(task_to_deal)
+    return task_dict
 
 def move_task_and_save(task_dict, task_to_deal, new_status, filename):
     """
@@ -99,21 +140,17 @@ def should_continue():
     Params: None
     Brief: Ask user to continue or stop.
     """
-    cont = input("\nDo you want to continue? (y/n): ").strip().lower()
-    return cont == "y"
-
-def move_task(task_dict, task_name, new_status):
-    """
-    Function: move_task
-    Params: task_dict (dict), task_name (str), new_status (str)
-    Brief: Move a task to a new status.
-    """
-    for status in task_dict:
-        if task_name in task_dict[status]:
-            task_dict[status].remove(task_name)
-            task_dict[new_status].append(task_name)
-            return task_dict
-    return task_dict
+    while True:
+        cont = input("\nDo you want to continue? (y/n/exit): ").strip().lower()
+        if cont == "y":
+            return True
+        elif cont == "n":
+            return False
+        elif cont == "exit":
+            print("Exiting the program.")
+            return False
+        else:
+            print("Invalid input. Please enter 'y', 'n', or 'exit'.")
 
 def save_to_file(task_dict, filename):
     """
@@ -121,16 +158,43 @@ def save_to_file(task_dict, filename):
     Params: task_dict (dict), filename (str)
     Brief: Save tasks to a text file.
     """
-    with open(filename, "w") as file:
-        file.write("TO DO    IN PROGRESS     REVIEW      DONE\n")
-        max_length = max(len(task_dict["TO DO"]), len(task_dict["IN PROGRESS"]), len(task_dict["REVIEW"]), len(task_dict["DONE"]))
-        
-        for i in range(max_length):
-            line = ""
-            for status in ["TO DO", "IN PROGRESS", "REVIEW", "DONE"]:
-                task = task_dict[status][i] if i < len(task_dict[status]) else ""
-                line += f"{task:<12}"
-            file.write(line.rstrip() + "\n")
+    try:
+        directory = os.path.dirname(filename)
+        if not os.path.exists(directory):
+            print(f"Error: The directory '{directory}' does not exist.")
+            return
+
+        with open(filename, "w") as file:
+            header = "TO DO        | IN PROGRESS    | REVIEW       | DONE\n"
+            file.write(header)
+            max_length = max(len(task_dict["TO DO"]), len(task_dict["IN PROGRESS"]), len(task_dict["REVIEW"]), len(task_dict["DONE"]))
+
+            for i in range(max_length):
+                line = ""
+                for status in ["TO DO", "IN PROGRESS", "REVIEW", "DONE"]:
+                    task = task_dict[status][i] if i < len(task_dict[status]) else ""
+                    line += f"{task:<12} | " if task else " " * 12 + " | "
+                file.write(line.rstrip(" | ") + "\n")
+        print(f"\nChanges saved to {filename}.")
+    except PermissionError:
+        print(f"Error: Permission denied. You do not have the required permissions to write to '{filename}'.")
+    except FileNotFoundError:
+        print(f"Error: The file path '{filename}' does not exist.")
+    except Exception as e:
+        print(f"An unexpected error occurred while saving the file: {e}")
+
+def get_valid_filename():
+    """
+    Function: get_valid_filename
+    Params: None
+    Brief: Keep asking the user until a valid file path is provided.
+    """
+    while True:
+        filename = input("Please enter the file path where tasks should be saved: ")
+        if os.path.exists(os.path.dirname(filename)):
+            return filename
+        else:
+            print("Invalid directory path. Please try again.")
 
 def main():
     """
@@ -138,7 +202,8 @@ def main():
     Params: None
     Brief: Run task management program.
     """
-    filename = "/home/usernamezero00/Desktop/myprojects/Task/task.txt"
+    filename = get_valid_filename()
+
     task_dict = {
         "TO DO": ["task 2", "task 4", "task 5"],
         "IN PROGRESS": ["task 1", "task 6"],
@@ -147,28 +212,25 @@ def main():
     }
 
     while True:
+        clear_screen()
         display_menu()
         choice = get_task_choice()
-        if choice not in ["1", "2", "3", "4", "5"]:
-            print("Invalid choice. Please choose a number from 1 to 5.")
-            continue
-        
+
+        clear_screen()
         display_task_list(choice, task_dict)
 
         task_to_deal = get_task_to_deal(task_dict)
-        if not task_to_deal:
-            continue
 
+        clear_screen()
         move_choice = get_move_choice()
-        if move_choice not in ["1", "2", "3", "4"]:
-            print("Invalid choice. Task not moved.")
-            continue
-        
+
+        clear_screen()
         new_status = ["TO DO", "IN PROGRESS", "REVIEW", "DONE"][int(move_choice) - 1]
 
         move_task_and_save(task_dict, task_to_deal, new_status, filename)
 
         if not should_continue():
+            print("\nEnding.....\nGoodbye!")
             break
         
 if __name__ == "__main__":
