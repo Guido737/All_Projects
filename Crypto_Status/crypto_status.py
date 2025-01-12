@@ -6,7 +6,13 @@ Date: 30 Dec 2024
 
 import requests
 import time
+import os 
 
+def clear_screen():
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
 
 def get_data():
     """
@@ -158,11 +164,13 @@ def handle_filter_choice(choice, datas):
     Params: choice (str), datas (list)
     Brief: Handle user's filter choice and display data
     """
+    clear_screen()
     try:
         if choice == "1":
             name = input("Enter the name of the cryptocurrency to search for (e.g., Bitcoin): ")
             if name:
                 try:
+                    clear_screen()
                     data = filter_name(datas, name)
                     output_data(data)
                 except KeyError:
@@ -212,6 +220,7 @@ def main():
     while True:
         try:
             try:
+                clear_screen()
                 datas = get_data()
                 if not datas:
                     print("No data received. Retrying...")
