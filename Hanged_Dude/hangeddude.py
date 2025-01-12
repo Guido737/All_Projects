@@ -15,14 +15,16 @@ def choose_word():
     """
     Function: choose_word
     Brief: Fetches or selects word.
-    Params: None
     """
     try:
         response = requests.get(BASE_URL, params=PARAMS)
         if response.status_code == 200:
             try:
-                words = response.json()[0]
-                return random.choice(words).lower()
+                words = response.json()
+                if words:
+                    return random.choice(words).lower()
+                else:
+                    raise Exception("No words found in response.")
             except (ValueError, IndexError) as e:
                 raise Exception(f"Error parsing JSON response: {e}")
         else:
@@ -32,7 +34,7 @@ def choose_word():
     except Exception as e:
         print(f"An error occurred: {e}")
     print("Using fallback word list.")
-    return random.choice(["apple", "banana", "cherry", "orange", "grape"])
+    return random.choice(["apple", "banana", "cherry", "orange", "grape"]).lower()
 
 def display_word(word, guessed_letters):
     """
