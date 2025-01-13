@@ -7,6 +7,13 @@ Date: 30 Dec 2024
 import requests
 import random
 import time
+import os 
+
+def clear_screen():
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
 
 def fetch_joke(url):
     """
@@ -88,6 +95,7 @@ def save_jokes_to_file(rated_jokes, filename='top_jokes.txt'):
         rated_jokes.sort(key=lambda x: x['rating'], reverse=True)
         with open(filename, 'w', encoding='utf-8') as f:
             for joke in rated_jokes:
+                clear_screen()
                 f.write(f"Joke: {joke['joke']}\nRating: {joke['rating']}\n")
         print(f"Jokes have been rated and saved in {filename}.")
     except ValueError as e:
