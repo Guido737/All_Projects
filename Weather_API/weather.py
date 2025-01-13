@@ -6,6 +6,13 @@ Date: 30 Dec 2024
 
 import requests
 import argparse
+import os
+
+def clear_screen():
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
 
 API_KEY = '40e151f43a8da63402abb3c21eaeabbb'
 BASE_URL = 'http://api.openweathermap.org/data/2.5/weather'
@@ -107,6 +114,7 @@ def main():
             return
         data = fetch_weather_data(args.city)
         if data:
+            clear_screen()
             display_weather(data, args.option)
         else:
             print("Failed to retrieve weather data.")
