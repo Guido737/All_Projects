@@ -6,6 +6,13 @@ Date: 30 Dec 2024
 
 import string
 from collections import Counter
+import os 
+
+def clear_screen():
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
 
 stop_words = set([
     'он', 'бою', 'на', 'всегда', 'в', 'для', 'о', 'по', 'это', 'или', 'быть', 'забыл', 'добавить', 'подсказку', 
@@ -72,6 +79,7 @@ def main(file_path, top_n=5):
     """
     text = read_file(file_path)
     if text:
+        clear_screen()
         cleaned_text = clean_text(text)
         filtered_words = filter_words(cleaned_text, stop_words)
         word_counts = count_word_frequencies(filtered_words)
