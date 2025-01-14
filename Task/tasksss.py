@@ -5,6 +5,7 @@ Date: 30 Dec 2024
 """
 
 import os
+import time
 
 def clear_screen():
     if os.name == "nt":
@@ -37,7 +38,6 @@ def display_menu():
 def get_task_choice():
     """
     Function: get_task_choice
-    Params: None
     Brief: Get user choice for tasks.
     """
     while True:
@@ -90,7 +90,6 @@ def get_task_to_deal(task_dict):
 def get_move_choice():
     """
     Function: get_move_choice
-    Params: None
     Brief: Get move choice from user.
     """
     print("\nWhere to move?")
@@ -115,7 +114,6 @@ def move_task_and_save(task_dict, task_to_deal, new_status, filename):
 def should_continue():
     """
     Function: should_continue
-    Params: None
     Brief: Ask user to continue or stop.
     """
     cont = input("\nDo you want to continue? (y/n): ").strip().lower()
@@ -164,7 +162,6 @@ def save_to_file(task_dict, filename):
 def main():
     """
     Function: main
-    Params: None
     Brief: Run task management program.
     """
     filename = "/home/usernamezero00/Desktop/myprojects/Task/task.txt"
@@ -198,6 +195,8 @@ def main():
         move_task_and_save(task_dict, task_to_deal, new_status, filename)
         if not should_continue():
             print("\nEnding.....\n\nGoodbye!")
+            time.sleep(2)
+            clear_screen()
             break
         
 if __name__ == "__main__":
